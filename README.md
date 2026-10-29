@@ -9,4 +9,4 @@ Statische Website (HTML/CSS/JS, kein Build-Schritt), gehostet auf Netlify.
 
 Lokal ansehen: `python3 -m http.server 4321` und http://localhost:4321 öffnen.
 
-Portraitfoto: Datei `assets/img/michael-wagner.jpg` ablegen und in `index.html` im Abschnitt „Über mich“ das auskommentierte `<img>` einsetzen.
+Portraitfoto: `assets/img/michael-wagner.jpg` (für schärfere Darstellung durch eine höher aufgelöste Version gleichen Namens ersetzen).
