@@ -112,6 +112,144 @@
     sections.forEach(function (s) { if (s) navIo.observe(s); });
   }
 
+  // Contact form -> /api/contact
+  var form = document.getElementById("contactForm");
+  if (form) {
+    var status = document.getElementById("formStatus");
+    var submit = form.querySelector('button[type="submit"]');
+    var fallback = ' Bitte schreiben Sie direkt an <a href="mailto:michael@wagner-consult.net">michael@wagner-consult.net</a> oder rufen Sie an: <a href="tel:+491705599111">+49 170 5599111</a>.';
+
+    function setStatus(text, kind) {
+      status.className = "form-status" + (kind ? " is-" + kind : "");
+      status.innerHTML = text;
+    }
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      form.querySelectorAll(".has-error").forEach(function (el) { el.classList.remove("has-error"); });
+      var invalid = Array.prototype.filter.call(form.querySelectorAll("[required]"), function (el) { return !el.checkValidity(); });
+      if (invalid.length) {
+        invalid.forEach(function (el) { var f = el.closest(".field"); if (f) f.classList.add("has-error"); });
+        setStatus("Bitte füllen Sie alle Pflichtfelder aus und bestätigen Sie den Datenschutzhinweis.", "error");
+        invalid[0].focus();
+        return;
+      }
+
+      var data = {
+        name: form.name.value,
+        company: form.unternehmen.value,
+        email: form.email.value,
+        phone: form.telefon.value,
+        message: form.nachricht.value,
+        topics: Array.prototype.map.call(form.querySelectorAll('input[name="thema"]:checked'), function (b) { return b.value; }),
+        consent: form.datenschutz.checked,
+        website: form.website.value
+      };
+
+      submit.disabled = true;
+      setStatus("Wird gesendet …");
+      fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      })
+        .then(function (res) { return res.json().catch(function () { return {}; }).then(function (body) { return { ok: res.ok && body.ok }; }); })
+        .then(function (r) {
+          if (r.ok) {
+            window.location.href = "danke.html";
+          } else {
+            setStatus("Ihre Nachricht konnte leider nicht übermittelt werden." + fallback, "error");
+            submit.disabled = false;
+          }
+        })
+        .catch(function () {
+          setStatus("Keine Verbindung zum Server." + fallback, "error");
+          submit.disabled = false;
+        });
+    });
+  }
+
+  // AI chat widget -> /api/chat (only shown when the assistant is configured)
+  var chat = document.getElementById("chat");
+  if (chat && window.fetch) {
+    fetch("/api/chat")
+      .then(function (r) { return r.ok ? r.json() : { enabled: false }; })
+      .then(function (d) { if (d.enabled) initChat(); })
+      .catch(function () {});
+  }
+
+  function initChat() {
+    var fab = document.getElementById("chatFab");
+    var panel = document.getElementById("chatPanel");
+    var closeBtn = document.getElementById("chatClose");
+    var messages = document.getElementById("chatMessages");
+    var chatForm = document.getElementById("chatForm");
+    var input = document.getElementById("chatInput");
+    var history = [];
+    var greeted = false;
+
+    chat.hidden = false;
+
+    function addMessage(role, text) {
+      var div = document.createElement("div");
+      div.className = "chat-msg chat-msg--" + role;
+      div.textContent = text;
+      messages.appendChild(div);
+      messages.scrollTop = messages.scrollHeight;
+      return div;
+    }
+
+    function setOpen(open) {
+      panel.hidden = !open;
+      fab.setAttribute("aria-expanded", String(open));
+      if (open) {
+        if (!greeted) {
+          greeted = true;
+          addMessage("bot", "Guten Tag! Ich bin der KI-Assistent von Wagner Consult. Wobei kann ich Ihnen helfen – KI-Strategie, Prozesse oder IT-Sourcing?");
+        }
+        input.focus();
+      }
+    }
+
+    fab.addEventListener("click", function () { setOpen(panel.hidden); });
+    closeBtn.addEventListener("click", function () { setOpen(false); fab.focus(); });
+
+    chatForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var text = input.value.trim();
+      if (!text) return;
+      addMessage("user", text);
+      history.push({ role: "user", content: text });
+      input.value = "";
+
+      var typing = addMessage("bot", "");
+      typing.classList.add("chat-msg--typing");
+      typing.innerHTML = "<span></span><span></span><span></span>";
+
+      fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: history })
+      })
+        .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, d: d }; }); })
+        .then(function (r) {
+          typing.remove();
+          if (r.ok && r.d.reply) {
+            addMessage("bot", r.d.reply);
+            history.push({ role: "assistant", content: r.d.reply });
+          } else {
+            history.pop();
+            addMessage("bot", "Entschuldigung, gerade gibt es ein technisches Problem. Nutzen Sie gern das Kontaktformular oder rufen Sie an: +49 170 5599111.");
+          }
+        })
+        .catch(function () {
+          typing.remove();
+          history.pop();
+          addMessage("bot", "Keine Verbindung. Bitte versuchen Sie es später erneut oder nutzen Sie das Kontaktformular.");
+        });
+    });
+  }
+
   var year = document.getElementById("year");
   if (year) year.textContent = new Date().getFullYear();
 })();

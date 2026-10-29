@@ -409,9 +409,8 @@
     <div class="form-card reveal reveal-d1">
       <h3>Nachricht senden</h3>
       <p>Unverbindlich und vertraulich. Felder mit * sind Pflichtfelder.</p>
-      <form name="kontakt" method="POST" action="/danke.html" data-netlify="true" netlify-honeypot="bot-field" id="contactForm">
-        <input type="hidden" name="form-name" value="kontakt">
-        <p class="hidden"><label>Nicht ausfüllen: <input name="bot-field"></label></p>
+      <form id="contactForm" novalidate>
+        <p class="hidden" aria-hidden="true"><label>Nicht ausfüllen: <input name="website" tabindex="-1" autocomplete="off"></label></p>
         <fieldset class="topics">
           <legend>Worum geht es?</legend>
           <label class="topic"><input type="checkbox" name="thema" value="KI-Readiness-Check"><span>KI-Readiness-Check</span></label>
@@ -432,6 +431,7 @@
         <div class="field"><label for="f-msg">Ihre Nachricht *</label><textarea id="f-msg" name="nachricht" required placeholder="Beschreiben Sie kurz Ihr Anliegen oder Ihre Herausforderung …"></textarea></div>
         <label class="consent"><input type="checkbox" name="datenschutz" value="akzeptiert" required><span>Ich habe die <a href="datenschutz.html" target="_blank">Datenschutzerklärung</a> zur Kenntnis genommen und bin mit der Verarbeitung meiner Angaben zur Bearbeitung der Anfrage einverstanden. *</span></label>
         <button type="submit" class="btn btn-primary">Anfrage senden <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
       </form>
     </div>
   </div>
@@ -509,6 +509,24 @@
     </div>
   </div>
 </footer>
+
+<!-- ================= CHAT ================= -->
+<div class="chat" id="chat" hidden>
+  <div class="chat-panel" id="chatPanel" role="dialog" aria-label="KI-Assistent von Wagner Consult" hidden>
+    <div class="chat-head">
+      <div><strong>KI-Assistent</strong><span>Fragen zu Leistungen &amp; Projekten</span></div>
+      <button class="chat-close" id="chatClose" aria-label="Chat schließen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <div class="chat-messages" id="chatMessages" aria-live="polite"></div>
+    <form class="chat-form" id="chatForm">
+      <label for="chatInput" class="hidden">Ihre Frage</label>
+      <input id="chatInput" type="text" maxlength="2000" placeholder="Ihre Frage …" autocomplete="off" required>
+      <button type="submit" aria-label="Senden"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    </form>
+    <p class="chat-note">KI-generierte Antworten können unvollständig sein. Gesprächsverläufe mit E-Mail-Adresse werden an Michael Wagner weitergeleitet. <a href="datenschutz.html">Datenschutz</a></p>
+  </div>
+  <button class="chat-fab" id="chatFab" aria-expanded="false" aria-controls="chatPanel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h16v11H9l-5 4V5Z"/><path d="M8 10h8M8 13h5"/></svg><span>Fragen? KI-Assistent</span></button>
+</div>
 
 <script src="assets/js/main.js" defer></script>
 </body>
